@@ -1,3 +1,5 @@
+# NOT MAINTAINED
+
 <img src="http://i.imgur.com/qRyNMx4.png" width="550">
 
 [![Build Status](https://travis-ci.org/speakeasyjs/speakeasy.svg?branch=v2)](https://travis-ci.org/speakeasyjs/speakeasy)
@@ -80,8 +82,8 @@ Next, we'll want to display a QR code to the user so they can scan in the secret
 Use a QR code module to generate a QR code that stores the data in `secret.otpauth_url`, and then display the QR code to the user. This is one simple way to do it, which generates a PNG data URL which you can put into an `<img>` tag on a webpage:
 
 ```js
-// Use the node-qrcode package
-// npm install --save node-qrcode
+// Use the qrcode package
+// npm install --save qrcode
 var QRCode = require('qrcode');
 
 // Get the data URL of the authenticator URL
@@ -199,6 +201,14 @@ var token = speakeasy.totp({
   secret: secret.base32,
   encoding: 'base32',
   time: 1453667708 // specified in seconds
+});
+
+// Verify a time-based token for a custom time
+var tokenValidates = speakeasy.totp.verify({
+  secret: secret.base32,
+  encoding: 'base32',
+  token: token,
+  time: 1453667708
 });
 ```
 
@@ -344,12 +354,25 @@ var secret = 'rNONHRni6BAk7y2TiKrv';
 // at time 1453854005 (60 seconds ahead, or 2 steps ahead)
 var token1 = speakeasy.totp({ secret: secret, time: 1453853945 }); // 625175
 var token3 = speakeasy.totp({ secret: secret, time: 1453854005 }); // 222636
+var token2 = speakeasy.totp({ secret: secret, time: 1453854065 }); // 013052
 
 // We can check the time at token 3, 1453853975, with token 1, but use a window of 2
 // With a time step of 30 seconds, this will check all tokens from 60 seconds 
 // before the time to 60 seconds after the time
 speakeasy.totp.verifyDelta({ secret: secret, token: token1, window: 2, time: 1453854005 });
 // => { delta: -2 }
+
+// token is valid because because token is 60 seconds before time
+speakeasy.totp.verify({ secret: secret, token: token1, window: 2, time: 1453854005 });
+// => true
+
+// token is valid because because token is 0 seconds before time
+speakeasy.totp.verify({ secret: secret, token: token3, window: 2, time: 1453854005 });
+// => true
+
+// token is valid because because token is 60 seconds after time
+speakeasy.totp.verify({ secret: secret, token: token2, window: 2, time: 1453854005 });
+// => true
 
 // This signifies that the given token, token1, is -2 steps away from
 // the given time, which means that it is the token for the value at
@@ -626,6 +649,7 @@ Authenticator URL to obtain a QR code you can scan into the app.
 | [options.name] | <code>String</code> |  | The name to use with Google Authenticator. |
 | [options.qr_codes] | <code>Boolean</code> | <code>false</code> | (DEPRECATED. Do not use to prevent   leaking of secret to a third party. Use your own QR code implementation.)   Output QR code URLs for the token. |
 | [options.google_auth_qr] | <code>Boolean</code> | <code>false</code> | (DEPRECATED. Do not use to   prevent leaking of secret to a third party. Use your own QR code   implementation.) Output a Google Authenticator otpauth:// QR code URL. |
+| [options.issuer] | <code>String</code> |  | The provider or service with which the secret key is associated. |
 
 <a name="generateSecretASCII"></a>
 ### generateSecretASCII([length], [symbols]) ⇒ <code>String</code>
@@ -678,7 +702,7 @@ generator, such as the `qr-image` module.
 | [options.algorithm] | <code>String</code> | <code>&quot;sha1&quot;</code> | Hash algorithm (sha1, sha256,   sha512). |
 | [options.digits] | <code>Integer</code> | <code>6</code> | The number of digits for the one-time   passcode. Currently ignored by Google Authenticator. |
 | [options.period] | <code>Integer</code> | <code>30</code> | The length of time for which a TOTP   code will be valid, in seconds. Currently ignored by Google   Authenticator. |
-| [options.encoding] | <code>String</code> |  | Key encoding (ascii, hex, base32,   base64). If the key is not encoded in Base-32, it will be reencoded. |
+| [options.encoding] | <code>String</code> | <code>ascii</code> | Key encoding (ascii, hex, base32,   base64). If the key is not encoded in Base-32, it will be reencoded. |
 
 <a name="GeneratedSecret"></a>
 ### GeneratedSecret : <code>Object</code>

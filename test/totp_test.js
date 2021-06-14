@@ -82,16 +82,16 @@ describe('TOTP Time-Based Algorithm Test', function () {
     });
   });
 
-  describe("base32 encoding with secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA' as base32 at time = 1111111109, digits = 8 and algorithm as 'sha256'", function () {
+  describe("base32 encoding with secret = 'GEZDGNBVGY3TQOJQ' as base32 at time = 1111111109, digits = 8 and algorithm as 'sha256'", function () {
     it('should return correct one-time password', function () {
-      var topic = speakeasy.totp({secret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZA', encoding: 'base32', time: 1111111109, digits: 8, algorithm: 'sha256'});
+      var topic = speakeasy.totp({secret: 'GEZDGNBVGY3TQOJQ', encoding: 'base32', time: 1111111109, digits: 8, algorithm: 'sha256'});
       assert.equal(topic, '68084774');
     });
   });
 
-  describe("base32 encoding with secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA' as base32 at time = 1111111109, digits = 8 and algorithm as 'sha512'", function () {
+  describe("base32 encoding with secret = 'GEZDGNBVGY3TQOJQ' as base32 at time = 1111111109, digits = 8 and algorithm as 'sha512'", function () {
     it('should return correct one-time password', function () {
-      var topic = speakeasy.totp({secret: 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNA', encoding: 'base32', time: 1111111109, digits: 8, algorithm: 'sha512'});
+      var topic = speakeasy.totp({secret: 'GEZDGNBVGY3TQOJQ', encoding: 'base32', time: 1111111109, digits: 8, algorithm: 'sha512'});
       assert.equal(topic, '25091201');
     });
   });
@@ -100,6 +100,14 @@ describe('TOTP Time-Based Algorithm Test', function () {
     it('should return correct one-time password', function () {
       var topic = speakeasy.totp({secret: '12345678901234567890', counter: 3});
       assert.equal(topic, '969429');
+    });
+  });
+
+  it('should throw exception if secret and key are missing in totp', function() {
+    assert.throws(function () {
+      speakeasy.totp({
+        digits: 6
+      }, /Speakeasy - totp - Missing secret/);
     });
   });
 
@@ -172,5 +180,35 @@ describe('TOTP Time-Based Algorithm Test', function () {
       });
       assert.isObject(delta); assert.strictEqual(delta.delta, -2);
     });
+
+    it('should throw exception if secret is missing in verifyDelta', function() {
+      assert.throws(function () {
+        speakeasy.totp.verifyDelta({
+          step: 30
+        }, /Speakeasy - totp.verifyDelta - Missing secret/);
+      });
+    });
+
+    it('should throw exception if token is missing in verifyDelta', function() {
+      assert.throws(function () {
+        speakeasy.totp.verifyDelta({
+          secret: 111111
+        }, /Speakeasy - totp.verifyDelta - Missing token/);
+      });
+    });
+
   });
+
+  it('should not throw exception if the algorithm is not sha1, sha256, or sha512', function() {
+    assert.doesNotThrow(function () {
+      speakeasy.totp({
+        secret: 'GEZDGNBVGY3TQOJQ',
+        encoding: 'base32',
+        time: 1111111109,
+        digits: 8,
+        algorithm: 'md5'
+      }, /unofficial algorithm `md5`/);
+    });
+  });
+
 });
